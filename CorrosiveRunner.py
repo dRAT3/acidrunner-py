@@ -1,11 +1,13 @@
 from os import stat
+import copy
 import types
-from .types import FunctionInfo
-from .bucket.CorrosiveBucket import CorrosiveBucket
-from .setting import Settings
+from types_custom import CorrosiveTaskData, CorrosiveTaskDataImmutable, FunctionInfo
+from bucket.CorrosiveBucket import CorrosiveBucket
+from setting import Settings, yaml
 from typing import List, Dict, Tuple
 import ast
 import importlib.util
+from uuid import uuid4
 
 corrosive_buckets: Dict[str, CorrosiveBucket] = {"bucket_std": CorrosiveBucket()}
 
@@ -22,6 +24,8 @@ class CorrosiveRunner:
                     corroz_functions, tree = CorrosiveRunner.parse_ast_tree(smoke_tree)
                     module = CorrosiveRunner.load_in_memory_module(tree, sut.name)
                     self.modules[sut.name] = module
+                    for corro in corroz_functions:
+                        self.funcinfo_to_pool(corro, sut.name)
 
             except Exception as e:
                 print(f"Couldn't scan file {sut.entrypoint}. Make sure you are executing acidrunner from the correct directory \nError:\n {e}")
@@ -69,18 +73,11 @@ class CorrosiveRunner:
                     node.body.insert(0, wait_for_token_call)
                     print(f"Injected wait_for_token for function: {node.name} with bucket: {bucket_name}")
 
-                        # Ensure the AST tree is of type ast.Module
+        # Ensure the AST tree is of type ast.Module
         if not isinstance(tree, ast.Module):
             tree = ast.Module(body=tree.body, type_ignores=[])
 
         return corroz_functions, tree
-    
-    @staticmethod
-    async def wait_for_token(bucket_name: str): 
-        global corrosive_buckets
-        bucket = corrosive_buckets.get(bucket_name)
-        if bucket:
-            _ = await bucket.wait_for_tokens()
     
     @staticmethod
     def load_in_memory_module(modified_tree: ast.Module, module_name: str) -> types.ModuleType:
@@ -92,3 +89,30 @@ class CorrosiveRunner:
         exec(compiled_code, module.__dict__)
 
         return module
+
+    @staticmethod
+    async def wait_for_token(bucket_name: str): 
+        global corrosive_buckets
+        bucket = corrosive_buckets.get(bucket_name)
+        if bucket:
+            _ = await bucket.wait_for_tokens()
+
+    def funcinfo_to_pool(self, func_info: FunctionInfo, sut_name):
+        for file in func_info.filenames:
+            with open(file, 'r') as file:
+                yaml_data = yaml.safe_load(file)
+                for corro in yaml_data['corroz']:
+                    task_data_immutable = CorrosiveTaskDataImmutable(
+                        task_id = str(uuid4()),
+                        name = corro['name'],
+                        func=func_info,
+                        args = [corro['args'][arg] for arg in corro['args']],
+                        sut_name=sut_name,
+                    )
+                    task_data = CorrosiveTaskData(
+                           immutable=task_data_immutable,
+                            meta_data={},
+                            result=None
+                    )
+                    tc = copy.deepcopy(task_data)
+                    self.pool.append(tc)

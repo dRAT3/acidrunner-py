@@ -3,19 +3,23 @@ from dataclasses import dataclass
 
 class FunctionInfo(NamedTuple):
     function_name: str
-    filenames: Optional[List[str]]
+    filenames: List[str]
     args: Optional[List[Any]]
+
+class CorrosiveTaskDataImmutable(NamedTuple):
+    task_id: str
+    name: str
+    func: FunctionInfo
+    args: Optional[List[str]]
+    sut_name: str
 
 @dataclass
 class CorrosiveTaskData:
-    task_id: str
-    run: int
-    name: str
-    func = FunctionInfo
+    immutable: CorrosiveTaskDataImmutable
     meta_data: Dict 
-
     result: Optional[Any]
     t0: Optional[int] = None
     t1: Optional[int] = None
 
-    succes: Optional[bool] = False
+    succes: bool = False
+
