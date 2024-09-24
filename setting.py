@@ -13,7 +13,7 @@ class Bucket:
     rpm: int
 
 @dataclass
-class FileSetting:
+class FileSettings:
     data_dir: str
     sqlite_enable: bool
 
@@ -21,14 +21,14 @@ class FileSetting:
 class Settings:
     systems_under_test: List[SystemUnderTest] = field(default_factory=list)
     buckets: List[Bucket] = field(default_factory=list)
-    file_settings: List[FileSetting] = field(default_factory=list)
+    file_settings: FileSettings
 
     @classmethod
     def from_dict(cls, config_dict: Dict) -> "Settings":
         return cls(
             systems_under_test=cls._parse_systems_under_test(config_dict.get('systems_under_test', [])),
             buckets=cls._parse_buckets(config_dict.get('buckets', [])),
-            file_settings=cls._parse_file_settings(config_dict.get('file_settings', []))
+            file_settings=cls._parse_file_settings(config_dict.get('file_settings', {}))
         )
 
     @staticmethod
@@ -50,14 +50,11 @@ class Settings:
         ]
 
     @staticmethod
-    def _parse_file_settings(file_settings_list: List[Dict]) -> List[FileSetting]:
-        return [
-            FileSetting(
-                data_dir=setting['data_dir'],
-                sqlite_enable=setting['sqlite_enable']
-            ) for setting in file_settings_list if 'data_dir' in setting and 'sqlite_enable' in setting
-        ]
-
+    def _parse_file_settings(file_settings: Dict) -> FileSettings:
+        return FileSettings(
+                data_dir=file_settings['data_dir'],
+                sqlite_enable=file_settings['sqlite_enable']
+            ) 
     @staticmethod
     def load_settings(config_path: str) -> "Settings":
         with open(config_path, 'r') as file:

@@ -3,6 +3,7 @@ import time
 import asyncio
 import copy
 import types
+from CorrosiveProcessor import CorrosiveProcessor
 from types_custom import CorrosiveTaskData, CorrosiveTaskDataImmutable, FunctionInfo
 from types_custom import AcidBoolResult, AcidFloatResult, AcidCosineResult
 from algo.distance import CosineSimilarityBasic
@@ -180,7 +181,7 @@ class CorrosiveRunner:
                 print(f"Meta_Data: {coro_task.meta_data}")
 
                 coro_task.executed = True
-                
+
                 return copy.deepcopy(coro_task) # Test if second deepcopy necessary
 
             except Exception as e:
@@ -192,10 +193,11 @@ class CorrosiveRunner:
         return [await self.run_wrapped_tasks(i) for i in range(runs)]
 
     ###Todo: All runs at once
-
 if __name__=="__main__":
     settings = Settings.load_settings("./demo/fuzzy_mala/Acidfile.yaml")
     runner = CorrosiveRunner(settings)
 
-    _ = asyncio.run(runner.run(1))
+    results = asyncio.run(runner.run(1))
 
+    processor = CorrosiveProcessor(settings)
+    processor.process(results)

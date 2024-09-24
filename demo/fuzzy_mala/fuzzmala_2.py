@@ -207,12 +207,13 @@ async def _bench_generate_attack_prompt_sys_included(model1, model2) -> AcidBool
     generated_prompt = await malicious_prompt_generator_words(model1, history, temp)
     hex_code = await prompt_validator(generated_prompt, model2)
 
-    meta_data.update({"attacker": generated_prompt, "defender": hex_code})
-
     test_passed = False
     if hex_code == "0x01":
         test_passed = True 
 
+    meta_data.update({"attacker": generated_prompt, "defender": hex_code})
+    if test_passed:
+        meta_data.update({'write_to_yaml': meta_data})
 
     return AcidBoolResult(test_passed, meta_data)
 
