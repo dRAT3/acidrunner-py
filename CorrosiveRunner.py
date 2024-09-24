@@ -1,9 +1,11 @@
 from os import stat
+import time
+import asyncio
 import copy
 import types
 from types_custom import CorrosiveTaskData, CorrosiveTaskDataImmutable, FunctionInfo
 from bucket.CorrosiveBucket import CorrosiveBucket
-from setting import Settings, yaml
+from setting import Bucket, Settings, yaml
 from typing import List, Dict, Tuple
 import ast
 import importlib.util
@@ -16,6 +18,7 @@ class CorrosiveRunner:
         self.settings = settings
         self.modules = {}
         self.pool = []
+        self.semaphore = asyncio.Semaphore(12)
 
         for sut in self.settings.systems_under_test:
             try:
@@ -26,6 +29,9 @@ class CorrosiveRunner:
                     self.modules[sut.name] = module
                     for corro in corroz_functions:
                         self.funcinfo_to_pool(corro, sut.name)
+
+                    CorrosiveRunner.setup_buckets(self.settings.buckets)
+
 
             except Exception as e:
                 print(f"Couldn't scan file {sut.entrypoint}. Make sure you are executing acidrunner from the correct directory \nError:\n {e}")
@@ -91,11 +97,11 @@ class CorrosiveRunner:
         return module
 
     @staticmethod
-    async def wait_for_token(bucket_name: str): 
-        global corrosive_buckets
-        bucket = corrosive_buckets.get(bucket_name)
-        if bucket:
-            _ = await bucket.wait_for_tokens()
+    def setup_buckets(buckets: List[Bucket]):
+        for buck in buckets:
+            tok_buck = CorrosiveBucket(buck.rpm, buck.rpm/60)
+            global corrosive_buckets
+            corrosive_buckets[buck.name] = tok_buck
 
     def funcinfo_to_pool(self, func_info: FunctionInfo, sut_name):
         for file in func_info.filenames:
@@ -116,3 +122,50 @@ class CorrosiveRunner:
                     )
                     tc = copy.deepcopy(task_data)
                     self.pool.append(tc)
+
+    @staticmethod
+    async def wait_for_token(bucket_name: str): 
+        global corrosive_buckets
+        bucket = corrosive_buckets.get(bucket_name)
+        if bucket:
+            _ = await bucket.wait_for_tokens()
+
+    async def run_wrapped_tasks(self):
+        async def wrapped_task(coro_task):
+            async with self.semaphore:
+                return await self.__run_corrosive_task(coro_task)
+
+        coroutines = [wrapped_task(coro_task) for coro_task in self.pool]
+        results = await asyncio.gather(*coroutines)
+
+        return results
+
+    async def __run_corrosive_task(self, coro_task: CorrosiveTaskData):
+        module = self.modules[coro_task.immutable.sut_name]
+
+        if hasattr(module, coro_task.immutable.func.function_name):
+            func = getattr(module, coro_task.immutable.func.function_name)
+            try:
+                coro_task.t0 = time.time_ns()
+                res = await func(*coro_task.immutable.args)
+                coro_task.t1 = time.time_ns()
+                coro_task.meta_data = res.meta_data
+
+                if type(res) == AcidBoolResult:
+                    coro_task.data.result = res.result
+                elif type(res) == AcidCosineResult:
+                    pass
+
+                print(f"[{coro_task.immutable.name}][{coro_task.immutable.func.function_name}]:")
+                print(f"{coro_task.immutable.task_id}")
+                print(f"{coro_task.immutable.args}")
+                print(f"Test passed: {coro_task.result}")
+                print(f"Meta_Data: {coro_task.meta_data}")
+
+                coro_task.succes = True
+
+            except Exception as e:
+                print(f"Error executing func {e}")
+        else:
+            print(f"Function {coro_task.func.function_name} not found in module {module.__name__}")
+
