@@ -19,9 +19,9 @@ class FileSettings:
 
 @dataclass
 class Settings:
+    file_settings: FileSettings
     systems_under_test: List[SystemUnderTest] = field(default_factory=list)
     buckets: List[Bucket] = field(default_factory=list)
-    file_settings: FileSettings
 
     @classmethod
     def from_dict(cls, config_dict: Dict) -> "Settings":
@@ -52,8 +52,8 @@ class Settings:
     @staticmethod
     def _parse_file_settings(file_settings: Dict) -> FileSettings:
         return FileSettings(
-                data_dir=file_settings['data_dir'],
-                sqlite_enable=file_settings['sqlite_enable']
+                data_dir=file_settings[0]['data_dir'],
+                sqlite_enable=file_settings[1]
             ) 
     @staticmethod
     def load_settings(config_path: str) -> "Settings":
