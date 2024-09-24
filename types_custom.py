@@ -5,18 +5,20 @@ from dataclasses import dataclass
 class AcidCosineResult:
     buffer1: List[float]
     buffer2: List[float]
-    max_dist: Optional[Tuple[float, float]]
-    meta_data: Dict
+    a_range: Optional[Tuple[float, float]] = (0.0, 0.0)
+    meta_data: Dict = {}
 
 @dataclass
 class AcidBoolResult:
     result: bool
-    meta_data: Dict
+    meta_data: Dict = {}
 
 @dataclass
 class AcidFloatResult:
     result: float 
-    meta_data: Dict
+    a_range: Tuple[float, float] = (0.0, 0.0)
+    meta_data: Dict = {}
+
 class FunctionInfo(NamedTuple):
     function_name: str
     filenames: List[str]
@@ -34,8 +36,7 @@ class CorrosiveTaskData:
     immutable: CorrosiveTaskDataImmutable
     meta_data: Dict 
     result: Optional[Any]
-    t0: Optional[int] = None
-    t1: Optional[int] = None
+    elapsed: Optional[int] = None
 
     executed: bool = False
     succes: bool = False

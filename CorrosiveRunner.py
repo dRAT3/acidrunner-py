@@ -5,9 +5,10 @@ import copy
 import types
 from types_custom import CorrosiveTaskData, CorrosiveTaskDataImmutable, FunctionInfo
 from types_custom import AcidBoolResult, AcidFloatResult, AcidCosineResult
+from algo.distance import CosineSimilarityBasic
 from bucket.CorrosiveBucket import CorrosiveBucket
 from setting import Bucket, Settings, yaml
-from typing import List, Dict, Tuple
+from typing import List, Dict, Tuple, Optional
 import ast
 import importlib.util
 from uuid import uuid4
@@ -32,7 +33,6 @@ class CorrosiveRunner:
                         self.funcinfo_to_pool(corro, sut.name)
 
                     CorrosiveRunner.setup_buckets(self.settings.buckets)
-
 
             except Exception as e:
                 print(f"Couldn't scan file {sut.entrypoint}. Make sure you are executing acidrunner from the correct directory \nError:\n {e}")
@@ -104,7 +104,7 @@ class CorrosiveRunner:
             global corrosive_buckets
             corrosive_buckets[buck.name] = tok_buck
 
-    def funcinfo_to_pool(self, func_info: FunctionInfo, sut_name):
+    def funcinfo_to_pool(self, func_info: FunctionInfo, sut_name: str):
         for file in func_info.filenames:
             with open(file, 'r') as file:
                 yaml_data = yaml.safe_load(file)
@@ -131,13 +131,17 @@ class CorrosiveRunner:
         if bucket:
             _ = await bucket.wait_for_tokens()
 
-    async def run_wrapped_tasks(self):
+    async def run_wrapped_tasks(self, run: int) -> List[Optional[CorrosiveTaskData]]:
         async def wrapped_task(coro_task):
             async with self.semaphore:
                 return await self.__run_corrosive_task(coro_task)
-
+        
+        print(f"Starting run {run}:")
+        t0 = time.time_ns()
         coroutines = [wrapped_task(coro_task) for coro_task in self.pool]
         results = await asyncio.gather(*coroutines)
+        elapsed = (time.time_ns() - t0) / 1_000_000_000
+        print(f"Run {run} executed in {elapsed} seconds")
 
         return results
 
@@ -147,16 +151,19 @@ class CorrosiveRunner:
         if hasattr(module, coro_task.immutable.func.function_name):
             func = getattr(module, coro_task.immutable.func.function_name)
             try:
-                coro_task.t0 = time.time_ns()
+                t0 = time.time_ns()
                 res = await func(*coro_task.immutable.args)
-                coro_task.t1 = time.time_ns()
+                coro_task.elapsed = time.time_ns() - t0
                 coro_task.meta_data = res.meta_data
                 coro_task.result = res
 
                 if type(res) == AcidBoolResult:
                     coro_task.succes = res.result 
                 elif type(res) == AcidCosineResult:
-                    pass
+                    score = CosineSimilarityBasic.calculate(coro_task.result.result.buffer1, coro_task.result.result.buffer2)
+                    coro_task.succes = CosineSimilarityBasic.is_in_range(score, coro_task.result.a_range)
+
+                    
 
                 print(f"[{coro_task.immutable.name}][{coro_task.immutable.func.function_name}]:")
                 print(f"{coro_task.immutable.task_id}")
@@ -166,10 +173,14 @@ class CorrosiveRunner:
 
                 coro_task.executed = True
                 
-                return copy.deepcopy(coro_task)
+                return copy.deepcopy(coro_task) # Test if second deepcopy necessary
 
             except Exception as e:
                 print(f"Error executing func {e}")
         else:
             print(f"Function {coro_task.immutable.func.function_name} not found in module {module.__name__}")
 
+    async def run(self, runs: int) -> List[List[Optional[CorrosiveTaskData]]]:
+        return [await self.run_wrapped_tasks(i) for i in range(runs)]
+
+    ###Todo: All runs at once
