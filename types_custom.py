@@ -1,6 +1,22 @@
-from typing import Any, List, Optional, NamedTuple, Dict
+from typing import Any, List, Optional, NamedTuple, Dict, Tuple
 from dataclasses import dataclass
 
+@dataclass
+class AcidCosineResult:
+    buffer1: List[float]
+    buffer2: List[float]
+    max_dist: Optional[Tuple[float, float]]
+    meta_data: Dict
+
+@dataclass
+class AcidBoolResult:
+    result: bool
+    meta_data: Dict
+
+@dataclass
+class AcidFloatResult:
+    result: float 
+    meta_data: Dict
 class FunctionInfo(NamedTuple):
     function_name: str
     filenames: List[str]
@@ -21,5 +37,6 @@ class CorrosiveTaskData:
     t0: Optional[int] = None
     t1: Optional[int] = None
 
+    executed: bool = False
     succes: bool = False
 

@@ -4,6 +4,7 @@ import asyncio
 import copy
 import types
 from types_custom import CorrosiveTaskData, CorrosiveTaskDataImmutable, FunctionInfo
+from types_custom import AcidBoolResult, AcidFloatResult, AcidCosineResult
 from bucket.CorrosiveBucket import CorrosiveBucket
 from setting import Bucket, Settings, yaml
 from typing import List, Dict, Tuple
@@ -150,9 +151,10 @@ class CorrosiveRunner:
                 res = await func(*coro_task.immutable.args)
                 coro_task.t1 = time.time_ns()
                 coro_task.meta_data = res.meta_data
+                coro_task.result = res
 
                 if type(res) == AcidBoolResult:
-                    coro_task.data.result = res.result
+                    coro_task.succes = res.result 
                 elif type(res) == AcidCosineResult:
                     pass
 
@@ -162,10 +164,12 @@ class CorrosiveRunner:
                 print(f"Test passed: {coro_task.result}")
                 print(f"Meta_Data: {coro_task.meta_data}")
 
-                coro_task.succes = True
+                coro_task.executed = True
+                
+                return copy.deepcopy(coro_task)
 
             except Exception as e:
                 print(f"Error executing func {e}")
         else:
-            print(f"Function {coro_task.func.function_name} not found in module {module.__name__}")
+            print(f"Function {coro_task.immutable.func.function_name} not found in module {module.__name__}")
 

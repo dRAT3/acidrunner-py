@@ -2,32 +2,20 @@ import os
 import time
 import random
 
-jumbled_code = """⠀⠀⠀⠀☁️☄️🌀🌙⠀⠀⠀⧉@staticmethod⧉⠀⠀⠀⠀🌙💫⚡🔥☁️
-⠀⠀⠀⠀async def ☄️wait_for_token(bucket_name: str):⠀⠀☂️
-🌪️ ⠀⠀⠀global ⭕corrosive_buckets⠀⠀⠀⠀💥
-⠀⠀⠀⠀ bucket = corrosive_buckets.get(bucket_name)☠️
-   ☢️⠀⠀⠀⠀if bucket:⠀⠀⠀⠀⠀⠀
-⠀⠀⚡⠀⠀⠀⠀☄️☄️await bucket.wait_for_tokens()⠀⠀⠀⠀⚡☄️
-
-🔮 def ✨funcinfo_to_pool(self, 🔥func_info: FunctionInfo🔥, sut_name):⠀⠀⠀
-(•🌑•)⠀⠀⠀⠀⠀⠀⠀for file 🌿 in func_info.filenames:⠀⠀⠀⠀⠀
-⛰️ with open(file, 'r') as file: 🌠☠️
-⠀🎭yaml_data🎭 = yaml.safe_load(file)☄️
-(👁️👄👁️)⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀for corro in 🧬yaml_data['corroz']:🧬
-   🍄 task_data_immutable = 🦠CorrosiveTaskDataImmutable🦠(
-⠀⠀⠀⠀⠀⠀🍥task_id = str(uuid4())🍥
-⠀⠀⠀⠀⠀⠀👾name = corro['name']👾
-⠀⠀⠀⠀⠀⠀🔗func=func_info🔗
-    ⠀⠀⠀⛓️args = [corro['args'][arg] for arg in corro['args']]⛓️
-⠀⠀⠀⠀⠀⠀s u t _ n a m e  = ☢️ sut_name☢️
-⠀⠀⠀⠀⠀⠀⠀)
-🌈task_data🌈 = 🧪CorrosiveTaskData🧪(
-         🧠immutable = task_data_immutable🧠
-         🔥meta_data = {},🔥
-         🧯result = None🧯
-        )
-✨✨tc = 🌀copy.deepcopy🌀(task_data)✨
-🔮🔮self.pool.append(tc)🔮🔮"""
+jumbled_code = ['''⠀⠀⠀⠀☁️☄️🌀🌙⠀⠀⠀⧉@staticmethod⧉⠀⠀⠀⠀🌙💫⚡🔥☁️''',
+'''async def ☄️wait_for_token(bucket_name: str):⠀⠀☂️''',
+'''🌪️ ⠀⠀⠀global ⭕corrosive_buckets⠀⠀⠀⠀💥''',
+'''⠀⠀⠀⠀ bucket = corrosive_buckets.get(bucket_name)☠️''',
+'''   "☢️⠀⠀⠀⠀if bucket:⠀⠀⠀⠀⠀⠀''',
+'''⠀⠀⚡⠀⠀⠀⠀☄️☄️await bucket.wait_for_tokens()⠀⠀⠀⠀⚡☄️''',
+"                                                 ",
+'''🔮 def ✨funcinfo_to_pool(self, 🔥func_info: FunctionInfo🔥, sut_name):⠀⠀⠀''',
+'''(•🌑•)⠀⠀⠀⠀⠀⠀⠀for file 🌿 in func_info.filenames:⠀⠀⠀⠀⠀''',
+'''⛰️ with open(file, 'r') as file: 🌠☠️''',
+'''⠀🎭yaml_data🎭 = yaml.safe_load(file)☄️''',
+'''(👁️👄👁️)⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀for corro in 🧬yaml_data['corroz']:🧬''',
+'''         🍄 task_data_immutable = 🦠CorrosiveTaskDataImmutable🦠(''',
+]
 
 colors = [
      "\033[91m",
@@ -142,6 +130,8 @@ def show_colored_ascii_art_glitch():
     clear_screen()
     for line in art:
         print(line)
+    for i in range(0, random.randint(1, 8)):
+        print(f"{color1}" + jumbled_code[random.randint(0, len(jumbled_code)-1)] + f"{reset}")
 
 def loop_between_normal_and_glitch(repeat_count=10):
     for i in range(repeat_count):
@@ -164,21 +154,21 @@ if __name__=='__main__':
         time.sleep(0.00033)
     for i in range(0, 6):
         clear_screen()
-        int1 = random.randint(0, len(jumbled_code))
-        int2 = random.randint(int1, len(jumbled_code))
+        int1 = random.randint(0, len(jumbled_code) -1)
+        int2 = random.randint(int1, len(jumbled_code) -1)
         if lucky_scary == 0x0c:
             print(jumbled_code[int1:int2])
         show_colored_ascii_art_flash()
         time.sleep(0.00033)
     for i in range(0,33):
         if lucky_scary == 0x0c:
-            int1 = random.randint(0, len(jumbled_code))
-            int2 = random.randint(int1, len(jumbled_code))
+            int1 = random.randint(0, len(jumbled_code) -1)
+            int2 = random.randint(int1, len(jumbled_code) -1)
             print(jumbled_code[int1:int2])
         clear_screen()
         show_colored_ascii_artfinal()
-        int1 = random.randint(0, len(jumbled_code))
-        int2 = random.randint(int1, len(jumbled_code))
+        int1 = random.randint(0, len(jumbled_code) -1)
+        int2 = random.randint(int1, len(jumbled_code) -1)
         time.sleep(0.00033)
     # Initial flicker effect with variable speeds
     for i in range(0, 33):
@@ -191,23 +181,22 @@ if __name__=='__main__':
     # Flashing with occasional jumbled code printouts
     for i in range(0, 6):
         clear_screen()
-        int1 = random.randint(0, len(jumbled_code))
-        int2 = random.randint(int1, len(jumbled_code))
-        
-        # Slightly increased chance of printing jumbled code
-        if lucky_scary % 13 == 0:
-            print(jumbled_code[int1:int2])
+        int1 = random.randint(0, len(jumbled_code) -1)
+        int2 = random.randint(int1, len(jumbled_code) -1)
         
         show_colored_ascii_art_flash()
         time.sleep(random.uniform(0.0001, 0.001))  # Variable timing
+        # Slightly increased chance of printing jumbled code
+        if lucky_scary % 3 == 0:
+            print(jumbled_code[int1:int2])
+
 
     # Final phase with a more intense flicker effect
     for i in range(0, 33):
-        if lucky_scary % 42 == 0:
-            int1 = random.randint(0, len(jumbled_code))
-            int2 = random.randint(int1, len(jumbled_code))
-            print(jumbled_code[int1:int2])
-        
         clear_screen()
         show_colored_ascii_artfinal()
         time.sleep(random.uniform(0.0001, 0.001))  # Variable timing
+        if lucky_scary % 5 == 0:
+            int1 = random.randint(0, len(jumbled_code)-1)
+            int2 = random.randint(int1, len(jumbled_code)-1)
+            print(jumbled_code[int1:int2])
