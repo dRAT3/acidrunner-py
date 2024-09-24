@@ -37,7 +37,7 @@ class Settings:
             SystemUnderTest(
                 name=system['name'],
                 entrypoint=system['entrypoint'],
-            ) for system in systems_list if 'name' in system and 'entrypoint' in system in system
+            ) for system in systems_list if 'name' in system and 'entrypoint' in system
         ]
 
     @staticmethod

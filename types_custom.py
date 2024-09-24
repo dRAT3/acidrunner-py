@@ -5,19 +5,19 @@ from dataclasses import dataclass
 class AcidCosineResult:
     buffer1: List[float]
     buffer2: List[float]
+    meta_data: Dict 
     a_range: Optional[Tuple[float, float]] = (0.0, 0.0)
-    meta_data: Dict = {}
 
 @dataclass
 class AcidBoolResult:
     result: bool
-    meta_data: Dict = {}
+    meta_data: Dict
 
 @dataclass
 class AcidFloatResult:
     result: float 
+    meta_data: Dict
     a_range: Tuple[float, float] = (0.0, 0.0)
-    meta_data: Dict = {}
 
 class FunctionInfo(NamedTuple):
     function_name: str
