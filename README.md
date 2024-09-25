@@ -59,9 +59,6 @@ file_settings:
 2. Create benchmarks/tests:
 
 ```python
-
-import aiohttp
-import os
 from acidrunner.decorators import use_bucket, in_files
 from acidrunner.types.types_custom import AcidBoolResult
 
