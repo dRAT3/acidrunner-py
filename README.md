@@ -2,8 +2,8 @@
 
 AcidRunner is a benchmarking/testing framework designed for testing and
 benchmarking APIs with a focus on LLM APIs. I use it to test chains of 
-prompts. But you could just as well test it to stress test APIs. Your
-imagination is the limit.
+prompts. But you could just as well test it to stress test APIs. Or use
+it to generate synthetic data.
 
 For now only async tests/benchmarks are supported.
 
