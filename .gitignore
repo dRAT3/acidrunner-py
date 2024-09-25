@@ -46,6 +46,7 @@ dmypy.json
 
 # Pyre
 .pyre/
+perso/
 
 # Jupyter Notebook
 .ipynb_checkpoints

@@ -6,7 +6,7 @@ class AcidCosineResult:
     buffer1: List[float]
     buffer2: List[float]
     meta_data: Dict 
-    a_range: Optional[Tuple[float, float]] = (0.0, 0.0)
+    a_range: Optional[Tuple[float, float]] = (0.0, 1.0)
 
 @dataclass
 class AcidBoolResult:
@@ -17,7 +17,7 @@ class AcidBoolResult:
 class AcidFloatResult:
     result: float 
     meta_data: Dict
-    a_range: Tuple[float, float] = (0.0, 0.0)
+    a_range: Tuple[float, float] = (0.0, 1.0)
 
 class FunctionInfo(NamedTuple):
     function_name: str

@@ -201,7 +201,7 @@ async def _bench_generate_attack_prompt(model1, model2) -> AcidBoolResult:
 
     meta_data['output'] = {"attacker": generated_prompt, "defender": hex_code}
     if not test_passed:
-        meta_data['write_to_yaml'] = {"name":"fuzzy-generated","args": {"attacker": generated_prompt}}
+        meta_data['write_to_yaml'] = {"name":"fuzzy-generated","args": {"attacker": "| " + generated_prompt.strip()}}
 
     return AcidBoolResult(test_passed, meta_data)
 
@@ -218,7 +218,7 @@ async def _bench_generate_attack_prompt_sys_included(model1, model2) -> AcidBool
 
     meta_data['output'] = {"attacker": generated_prompt, "defender": hex_code}
     if not test_passed:
-        meta_data['write_to_yaml'] = {"name":"fuzzy-generated","args": {"attacker": generated_prompt.strip()}}
+        meta_data['write_to_yaml'] = {"name":"ss_included","args": {"attacker": "| " + generated_prompt.strip()}}
 
     return AcidBoolResult(test_passed, meta_data)
 

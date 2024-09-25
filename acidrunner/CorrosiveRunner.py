@@ -197,7 +197,7 @@ if __name__=="__main__":
     settings = Settings.load_settings("./demo/fuzzy_mala/Acidfile.yaml")
     runner = CorrosiveRunner(settings)
 
-    results = asyncio.run(runner.run(1))
+    results = asyncio.run(runner.run(10))
 
     processor = CorrosiveProcessor(settings)
     processor.process(results)

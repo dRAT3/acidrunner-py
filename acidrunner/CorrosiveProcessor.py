@@ -1,5 +1,5 @@
 from setting import Settings
-from typing import List, Dict
+from typing import List, Dict, Optional, Union
 from types_custom import CorrosiveTaskData
 import os
 from sys import exit
@@ -15,7 +15,7 @@ class CorrosiveProcessor:
         if 'write_to_yaml' in task.meta_data:
             self.yaml_out['tests'].append(task.meta_data['write_to_yaml'])
 
-    def process(self, task_data_list: List[List[CorrosiveTaskData]]):
+    def process(self, task_data_list: List[List[Optional[CorrosiveTaskData]]]):
         self.clear_data()
 
         succes_rate_total = 0.0
