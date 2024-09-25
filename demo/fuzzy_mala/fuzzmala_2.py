@@ -2,9 +2,9 @@ from numpy import random
 import aiohttp
 import os
 from groq import AsyncGroq
-from decorators import use_bucket, in_files
-from types_custom import AcidBoolResult
-from CorrosiveRunner import CorrosiveRunner
+from acidrunner.decorators import use_bucket, in_files
+from acidrunner.types_custom import AcidBoolResult
+from acidrunner import CorrosiveRunner
 from typing import Dict
 
 client = AsyncGroq(
