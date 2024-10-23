@@ -1,0 +1,17 @@
+tests:
+  - name: "mixtral_vs_llama3-70b"
+    args:
+      model1: "mixtral-8x7b-32768"
+      model2: "llama3-70b-8192"
+  - name: "llama3-tool-use_vs_llama3-70b"
+    args: 
+      model1: "llama3-groq-70b-8192-tool-use-preview"
+      model2: "llama3-70b-8192"
+  - name: "tool_v_no_tool_70b"
+    args:
+      model1: "llama3-70b-8192" 
+      model2: "llama3-groq-70b-8192-tool-use-preview"
+  - name: "3.1v3.1"
+    args:
+      model1: "llama-3.1-70b-versatile" 
+      model2: "llama-3.1-70b-versatile"

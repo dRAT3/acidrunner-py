@@ -1,7 +1,8 @@
-import time
 import asyncio
 import threading
+import time
 from typing import Dict
+
 
 class CorrosiveBucket:
     _instance = None
@@ -15,12 +16,14 @@ class CorrosiveBucket:
         return cls._instance
 
     def __init__(self, capacity=10, refill_rate=0.5):
-        if not hasattr(self, 'initialized'):  # Ensures init code runs only once
+        if not hasattr(self, "initialized"):  # Ensures init code runs only once
             self.capacity = capacity
             self.refill_rate = refill_rate
             self.current_tokens = capacity
             self.last_refill_time = time.time()
-            self._token_lock = asyncio.Lock()  # Use asyncio.Lock for async safety in critical sections
+            self._token_lock = (
+                asyncio.Lock()
+            )  # Use asyncio.Lock for async safety in critical sections
             self.initialized = True
 
     async def configure(self, capacity=None, refill_rate=None):
@@ -35,7 +38,9 @@ class CorrosiveBucket:
         tokens_to_add = elapsed * self.refill_rate
 
         if tokens_to_add > 0:
-            self.current_tokens = min(self.capacity, self.current_tokens + tokens_to_add)
+            self.current_tokens = min(
+                self.capacity, self.current_tokens + tokens_to_add
+            )
             self.last_refill_time = now
 
     async def set_refill_rate(self, tpm):
@@ -60,5 +65,6 @@ class CorrosiveBucket:
             else:
                 await asyncio.sleep(wait_time)
                 wait_time = min(max_wait_time, wait_time * 2)
+
 
 corrosive_buckets: Dict[str, CorrosiveBucket] = {"bucket_std": CorrosiveBucket()}

@@ -1,5 +1,6 @@
-from acidrunner.settings import Settings
 from acidrunner.CorrosiveRunner import CorrosiveRunner
+from acidrunner.setting import Settings
+
 
 def load_runner(config_file: str | None):
     if config_file:
@@ -16,9 +17,7 @@ def load_runner(config_file: str | None):
             settings = Settings.load_settings("Acidfile.yaml")
             runner = CorrosiveRunner(settings)
 
-            return runner, 
+            return (runner,)
         except Exception as e:
-            print("Couldn't open Acidfile.yaml try and specify one with --config-filef")
+            print("Couldn't open Acidfile.yaml try and specify one with -f")
             raise Exception(f"Couldn't open {config_file}\n\r{e}")
-
-

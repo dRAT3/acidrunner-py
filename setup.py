@@ -1,5 +1,6 @@
 import sys
-from setuptools import setup, find_packages
+
+from setuptools import find_packages, setup
 
 extras = {
     "cli": ["typer"],
@@ -7,10 +8,11 @@ extras = {
 }
 
 # Check if the noop_decorators_only option is being used
+# Only include bucketlib
 if "decorators_only" in sys.argv:
-    packages = find_packages(include=["acidrunner.decorators"])  # Only include bucketlib
+    packages = find_packages(include=["acidrunner.decorators"])
 else:
-    packages = find_packages(exclude=["tests*", "__pycache__"])  # Full package installation
+    packages = find_packages(exclude=["tests*", "__pycache__"])
 
 setup(
     name="acidrunner",

@@ -1,21 +1,23 @@
-from os import stat
-import time
+import ast
 import asyncio
 import copy
-import types
-from CorrosiveProcessor import CorrosiveProcessor
-from types_custom import CorrosiveTaskData, CorrosiveTaskDataImmutable, FunctionInfo
-from types_custom import AcidBoolResult, AcidFloatResult, AcidCosineResult
-from algo.distance import CosineSimilarityBasic
-from bucket.CorrosiveBucket import CorrosiveBucket
-from setting import Bucket, Settings, yaml
-from typing import List, Dict, Tuple, Optional
-import ast
 import importlib.util
-from uuid import uuid4
 import sys
+import time
+import types
+from typing import Dict, List, Optional, Tuple
+from uuid import uuid4
+
+from acidrunner.algo.distance import CosineSimilarityBasic
+from acidrunner.bucket.CorrosiveBucket import CorrosiveBucket
+from acidrunner.CorrosiveProcessor import CorrosiveProcessor
+from acidrunner.setting import Bucket, Settings, yaml
+from acidrunner.types_custom import (AcidBoolResult, AcidCosineResult,
+                                     AcidFloatResult, CorrosiveTaskData,
+                                     CorrosiveTaskDataImmutable, FunctionInfo)
 
 corrosive_buckets: Dict[str, CorrosiveBucket] = {"bucket_std": CorrosiveBucket()}
+
 
 class CorrosiveRunner:
     def __init__(self, settings: Settings) -> None:
@@ -26,7 +28,7 @@ class CorrosiveRunner:
 
         for sut in self.settings.systems_under_test:
             try:
-                with open(sut.entrypoint, 'r') as file:
+                with open(sut.entrypoint, "r") as file:
                     smoke_tree = ast.parse(file.read())
                     corroz_functions, tree = CorrosiveRunner.parse_ast_tree(smoke_tree)
                     module = CorrosiveRunner.load_in_memory_module(tree, sut.name)
@@ -37,9 +39,11 @@ class CorrosiveRunner:
                     CorrosiveRunner.setup_buckets(self.settings.buckets)
 
             except Exception as e:
-                print(f"Couldn't scan file {sut.entrypoint}. Make sure you are executing acidrunner from the correct directory \nError:\n {e}")
+                print(
+                    f"Couldn't scan file {sut.entrypoint}. Make sure you are executing acidrunner from the correct directory \nError:\n {e}"
+                )
                 sys.exit(0x00)
-        
+
     @staticmethod
     def parse_ast_tree(tree) -> Tuple[List[FunctionInfo], ast.Module]:
         """"""
@@ -54,11 +58,19 @@ class CorrosiveRunner:
                 bucket_name = None
                 print(f"Found function checking for decorators: {node.name}")
                 for decorator in node.decorator_list:
-                    if isinstance(decorator, ast.Call) and hasattr(decorator.func, 'id'):
-                        if decorator.func.id == 'use_bucket': 
-                            bucket_name = decorator.args[0].s if decorator.args else None
-                        elif decorator.func.id == 'in_files':
-                            filenames = [arg.s for arg in decorator.args[0].elts] if decorator.args else []
+                    if isinstance(decorator, ast.Call) and hasattr(
+                        decorator.func, "id"
+                    ):
+                        if decorator.func.id == "use_bucket":
+                            bucket_name = (
+                                decorator.args[0].s if decorator.args else None
+                            )
+                        elif decorator.func.id == "in_files":
+                            filenames = (
+                                [arg.s for arg in decorator.args[0].elts]
+                                if decorator.args
+                                else []
+                            )
                 if node.name.startswith("_bench"):
                     args = [arg.arg for arg in node.args.args]
                     corroz_functions.append(FunctionInfo(node.name, filenames, args))
@@ -68,35 +80,50 @@ class CorrosiveRunner:
                         value=ast.Await(
                             value=ast.Call(
                                 func=ast.Attribute(
-                                    value=ast.Name(id='CorrosiveRunner', ctx=ast.Load(), lineno=node.lineno, col_offset=node.col_offset),
-                                    attr='wait_for_token',
+                                    value=ast.Name(
+                                        id="CorrosiveRunner",
+                                        ctx=ast.Load(),
+                                        lineno=node.lineno,
+                                        col_offset=node.col_offset,
+                                    ),
+                                    attr="wait_for_token",
                                     ctx=ast.Load(),
                                     lineno=node.lineno,  # Setting the line number
-                                    col_offset=node.col_offset  # Setting the column offset
+                                    col_offset=node.col_offset,  # Setting the column offset
                                 ),
-                                args=[ast.Constant(value=bucket_name, lineno=node.lineno, col_offset=node.col_offset)],
+                                args=[
+                                    ast.Constant(
+                                        value=bucket_name,
+                                        lineno=node.lineno,
+                                        col_offset=node.col_offset,
+                                    )
+                                ],
                                 keywords=[],
                                 lineno=node.lineno,
-                                col_offset=node.col_offset
+                                col_offset=node.col_offset,
                             ),
                             lineno=node.lineno,
-                            col_offset=node.col_offset
+                            col_offset=node.col_offset,
                         ),
                         lineno=node.lineno,
-                        col_offset=node.col_offset
+                        col_offset=node.col_offset,
                     )
 
                     node.body.insert(0, wait_for_token_call)
-                    print(f"Injected wait_for_token for function: {node.name} with bucket: {bucket_name}")
+                    print(
+                        f"Injected wait_for_token for function: {node.name} with bucket: {bucket_name}"
+                    )
 
         # Ensure the AST tree is of type ast.Module
         if not isinstance(tree, ast.Module):
             tree = ast.Module(body=tree.body, type_ignores=[])
 
         return corroz_functions, tree
-    
+
     @staticmethod
-    def load_in_memory_module(modified_tree: ast.Module, module_name: str) -> types.ModuleType:
+    def load_in_memory_module(
+        modified_tree: ast.Module, module_name: str
+    ) -> types.ModuleType:
         compiled_code = compile(modified_tree, filename="<ast>", mode="exec")
         module = types.ModuleType(module_name)
         spec = importlib.util.spec_from_loader(module_name, loader=None)
@@ -109,32 +136,30 @@ class CorrosiveRunner:
     @staticmethod
     def setup_buckets(buckets: List[Bucket]):
         for buck in buckets:
-            tok_buck = CorrosiveBucket(buck.rpm, buck.rpm/60)
+            tok_buck = CorrosiveBucket(buck.rpm, buck.rpm / 60)
             global corrosive_buckets
             corrosive_buckets[buck.name] = tok_buck
 
     def funcinfo_to_pool(self, func_info: FunctionInfo, sut_name: str):
         for file in func_info.filenames:
-            with open(file, 'r') as file:
+            with open(file, "r") as file:
                 yaml_data = yaml.safe_load(file)
-                for corro in yaml_data['tests']:
+                for corro in yaml_data["tests"]:
                     task_data_immutable = CorrosiveTaskDataImmutable(
-                        task_id = str(uuid4()),
-                        name = corro['name'],
+                        task_id=str(uuid4()),
+                        name=corro["name"],
                         func=func_info,
-                        args = [corro['args'][arg] for arg in corro['args']],
+                        args=[corro["args"][arg] for arg in corro["args"]],
                         sut_name=sut_name,
                     )
                     task_data = CorrosiveTaskData(
-                           immutable=task_data_immutable,
-                            meta_data={},
-                            result=None
+                        immutable=task_data_immutable, meta_data={}, result=None
                     )
                     tc = copy.deepcopy(task_data)
                     self.pool.append(tc)
 
     @staticmethod
-    async def wait_for_token(bucket_name: str): 
+    async def wait_for_token(bucket_name: str):
         global corrosive_buckets
         bucket = corrosive_buckets.get(bucket_name)
         if bucket:
@@ -144,7 +169,7 @@ class CorrosiveRunner:
         async def wrapped_task(coro_task):
             async with self.semaphore:
                 return await self.__run_corrosive_task(coro_task)
-        
+
         print(f"Starting run {run}:")
         t0 = time.time_ns()
         coroutines = [wrapped_task(coro_task) for coro_task in self.pool]
@@ -166,15 +191,23 @@ class CorrosiveRunner:
                 coro_task.meta_data = res.meta_data
                 coro_task.result = res
 
-                if type(res) == AcidBoolResult:
-                    coro_task.succes = res.result 
-                elif type(res) == AcidCosineResult:
-                    score = CosineSimilarityBasic.calculate(coro_task.result.result.buffer1, coro_task.result.result.buffer2)
-                    coro_task.succes = CosineSimilarityBasic.is_in_range(score, coro_task.result.a_range)
-                elif type(res) == AcidFloatResult:
-                    coro_task.succes = CosineSimilarityBasic.is_in_range(coro_task.result, coro_task.result.a_range)
+                if type(res) is AcidBoolResult:
+                    coro_task.succes = res.result
+                elif type(res) is AcidCosineResult:
+                    score = CosineSimilarityBasic.calculate(
+                        coro_task.result.result.buffer1, coro_task.result.result.buffer2
+                    )
+                    coro_task.succes = CosineSimilarityBasic.is_in_range(
+                        score, coro_task.result.a_range
+                    )
+                elif type(res) is AcidFloatResult:
+                    coro_task.succes = CosineSimilarityBasic.is_in_range(
+                        coro_task.result, coro_task.result.a_range
+                    )
 
-                print(f"[{coro_task.immutable.name}][{coro_task.immutable.func.function_name}]:")
+                print(
+                    f"[{coro_task.immutable.name}][{coro_task.immutable.func.function_name}]:"
+                )
                 print(f"{coro_task.immutable.task_id}")
                 print(f"{coro_task.immutable.args}")
                 print(f"Test passed: {coro_task.result}")
@@ -182,18 +215,22 @@ class CorrosiveRunner:
 
                 coro_task.executed = True
 
-                return copy.deepcopy(coro_task) # Test if second deepcopy necessary
+                return copy.deepcopy(coro_task)  # Test if second deepcopy necessary
 
             except Exception as e:
                 print(f"Error executing func {e}")
         else:
-            print(f"Function {coro_task.immutable.func.function_name} not found in module {module.__name__}")
+            print(
+                f"Function {coro_task.immutable.func.function_name} not found in module {module.__name__}"
+            )
 
     async def run(self, runs: int) -> List[List[Optional[CorrosiveTaskData]]]:
         return [await self.run_wrapped_tasks(i) for i in range(runs)]
 
-    ###Todo: All runs at once
-if __name__=="__main__":
+    # Todo: All runs at once
+
+
+if __name__ == "__main__":
     settings = Settings.load_settings("./demo/fuzzy_mala/Acidfile.yaml")
     runner = CorrosiveRunner(settings)
 
